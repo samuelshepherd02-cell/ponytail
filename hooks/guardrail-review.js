@@ -18,15 +18,23 @@ const digest = text => crypto.createHash('sha256').update(text).digest('hex');
 const normalized = text => text.replace(/\s+/gu, ' ').trim();
 
 function git(repo, args, options = {}) {
-  return execFileSync('git', ['--no-pager', ...args], {
+  const { preserveWhitespace = false, ...commandOptions } = options;
+  const output = execFileSync('git', ['--no-pager', ...args], {
     cwd: repo, encoding: 'utf8', maxBuffer: 16 * 1024 * 1024,
-    stdio: ['pipe', 'pipe', 'pipe'], ...options,
-  }).trimEnd();
+    stdio: ['pipe', 'pipe', 'pipe'], ...commandOptions,
+  });
+  return preserveWhitespace ? output : output.trimEnd();
+}
+
+function instructionSurface(name) {
+  return /(?:^|\/)(?:AGENTS|CLAUDE|GEMINI|SKILL|HANDOFF)(?:\.md)?$/i.test(name) ||
+    /^\.github\/.*instructions.*\.md$/i.test(name) || /^\.github\/agents\/.*\.md$/i.test(name) ||
+    /^agents\/(?:.*\/)?instructions\.md$/i.test(name) || /^agents\/.*\.agent\.md$/i.test(name);
 }
 
 function eligible(name) {
   return name !== RECEIPT && !EXCLUDED.test(name) &&
-    (EXTENSIONS.test(name) || /(?:^|\/)(?:AGENTS|CLAUDE|GEMINI)$/.test(name));
+    (EXTENSIONS.test(name) || instructionSurface(name));
 }
 
 function exists(name) {
@@ -72,7 +80,7 @@ function revisionText(repo, revision, name, maxBytes = 1024 * 1024) {
   const [mode, type, sha] = entry.slice(0, entry.indexOf('\t')).split(' ');
   if (type !== 'blob' || !['100644', '100755'].includes(mode)) throw new Error('Unsupported review input mode: ' + name);
   if (Number(git(repo, ['cat-file', '-s', sha])) > maxBytes) throw new Error('Unreviewable file size: ' + name);
-  return git(repo, ['show', revision + ':' + name]);
+  return git(repo, ['show', revision + ':' + name], { preserveWhitespace: true });
 }
 
 function receipts(repo, head) {
@@ -110,11 +118,13 @@ function reviewChanges(repo, baseRef = 'HEAD', options = {}) {
     (head ? '' : '\0' + git(repo, ['ls-files', '-z', '--others', '--exclude-standard']));
   const reviews = receipts(repo, head);
   const findings = [];
+  const changedInstructions = [];
   for (const name of [...new Set(names.split('\0').filter(Boolean))].sort()) {
     if (!eligible(name) || (!head && !exists(path.join(repo, name)))) continue;
     const current = head ? revisionText(repo, head, name) : localText(repo, name);
     if (current === null || current.includes('\0')) continue;
     const old = base ? revisionText(repo, base, name) || '' : '';
+    if (instructionSurface(name) && current !== old) changedInstructions.push({ path: name, sha256: digest(current) });
     const prior = new Set(scanText(name, old).map(row => row.id));
     for (const candidate of scanText(name, current)) {
       if (prior.has(candidate.id)) continue;
@@ -136,6 +146,8 @@ function reviewChanges(repo, baseRef = 'HEAD', options = {}) {
   return { schema_version: 1, scope: options.all ? 'all_current_text_candidates' : 'new_or_changed_text_candidates',
     detection: 'lexical_candidates_require_semantic_review', repository: repo,
     base, head, status: unresolved.length ? 'needs_review' : 'pass', findings,
+    semantic_scope: 'changed_instruction_surfaces_trigger_review_even_without_lexical_matches; CLI_check_validates_lexical_dispositions',
+    changed_instruction_files: changedInstructions,
     unresolved_count: unresolved.length };
 }
 
@@ -150,12 +162,19 @@ function message(report) {
   const unresolved = report.findings.filter(row => !row.resolved);
   const rows = unresolved.slice(0, 12).map(row =>
     `${row.path}:${row.line} [${row.id}] ${row.text.slice(0, 180)}`);
-  return `Guardrail review: ${unresolved.length} new/changed candidates. Dispatch guardrail-reviewer to critically review their actual context. ` +
+  return `Guardrail review: ${unresolved.length} new/changed lexical candidates; ${report.changed_instruction_files.length} changed instruction surfaces. Dispatch guardrail-reviewer to critically review their actual context, including positive paraphrases and referenced restrictions. ` +
     `Delete unnecessary restrictions in their canonical sources and generated/fallback copies. ` +
     `A retained restriction needs its exact finding id and an intrinsic-benefit, necessity, and lack-of-alternatives justification of at least ${MIN_JUSTIFICATION} characters in ${RECEIPT}. ` +
     `A descriptive example needs decision not_a_guardrail with reason and evidence. Stage the receipt. ` +
     `The lexical detector is not a semantic verdict. Full report command argv: ${JSON.stringify([process.execPath, __filename, '--base', report.base, '--check'])}\n` +
-    rows.join('\n') + (unresolved.length > 12 ? '\nAdditional candidates are in the full report.' : '');
+    rows.join('\n') + (unresolved.length > 12 ? '\nAdditional candidates are in the full report.' : '') +
+    '\nChanged instruction surfaces: ' + report.changed_instruction_files.slice(0, 12).map(row => `${row.path} [${row.sha256}]`).join(', ');
+}
+
+function saveState(file, value) {
+  const temp = file + '.' + process.pid + '.tmp';
+  fs.writeFileSync(temp, JSON.stringify(value));
+  fs.renameSync(temp, file);
 }
 
 function runHook(event, payload) {
@@ -172,9 +191,7 @@ function runHook(event, payload) {
     if (event === 'sessionStart') {
       if (!fs.existsSync(state)) {
         fs.mkdirSync(path.dirname(state), { recursive: true });
-        const temp = state + '.' + process.pid + '.tmp';
-        fs.writeFileSync(temp, JSON.stringify({ base: git(repo, ['rev-parse', 'HEAD']) }));
-        fs.renameSync(temp, state);
+        saveState(state, { base: git(repo, ['rev-parse', 'HEAD']) });
       }
       return {};
     }
@@ -182,7 +199,14 @@ function runHook(event, payload) {
     const stored = JSON.parse(fs.readFileSync(state, 'utf8'));
     if (!/^[0-9a-f]{40,64}$/.test(stored.base)) throw new Error('Invalid session baseline');
     const report = reviewChanges(repo, stored.base);
-    if (event === 'postToolUse') return report.unresolved_count ? { additionalContext: message(report) } : {};
+    if (event === 'postToolUse') {
+      const pending = report.findings.filter(row => !row.resolved).map(row => [row.id, row.text]);
+      const key = pending.length || report.changed_instruction_files.length ?
+        digest(JSON.stringify([pending, report.changed_instruction_files])) : null;
+      if (key === (stored.lastNotification || null)) return {};
+      saveState(state, { ...stored, lastNotification: key });
+      return key ? { additionalContext: message(report) } : {};
+    }
     throw new Error('Unsupported hook event: ' + event);
   } catch (error) {
     const reason = 'Guardrail review could not complete: ' + error.message;

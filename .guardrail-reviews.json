@@ -1,0 +1,117 @@
+{
+  "schema_version": 1,
+  "reviews": [
+    {
+      "id": "08fb1c3af4b6c5a3e3a80043ef4791ffa8427ba3860bd407bb6e7bed73c8a8a6",
+      "path": ".github/plugin/plugin.json",
+      "decision": "not_a_guardrail",
+      "reason": "This diff adds only agent discovery metadata. The prohibitive marketing phrase was already present in the base object and is not a newly authored instruction.",
+      "evidence": "Compared with bc5a2516f1c624f59d0a391c2dd350f62bd11ff4, .github/plugin/plugin.json changes only the final hooks comma and adds agents: agents/. The description phrase no unrequested abstractions is unchanged; paragraph-level hashing reports the entire JSON object. This classifies the changed discovery metadata, not the existing behavioral rule."
+    },
+    {
+      "id": "e01785ec3532d18062601232c88401e9d3346c4a7969ea2a35bd2d39890c2dd9",
+      "path": "agents/guardrail-reviewer.agent.md",
+      "decision": "not_a_guardrail",
+      "reason": "The agent frontmatter describes its purpose and exposed tools. The matching word is its name; this paragraph adds no natural-language prohibition on the underlying repository task.",
+      "evidence": "YAML name/description/tools metadata defines the requested reviewer. The tool set includes viewing, searching, shell execution and editing; the text contains no extra approval or deletion ban."
+    },
+    {
+      "id": "df1b9930b5c1c2a13fe7f076e16fd889b128f5a7e1d165bf6c63f590c22eda70",
+      "path": "agents/guardrail-reviewer.agent.md",
+      "decision": "not_a_guardrail",
+      "reason": "This defines the source-tracing task requested of the reviewer, rather than adding a restriction on the underlying repository task.",
+      "evidence": "agents/guardrail-reviewer.agent.md:7 uses the complete report command supplied by the running hook. Inspection of the owner request, exact instruction and canonical/generated sources directly implements the requested investigation."
+    },
+    {
+      "id": "6e0afe584e569eb82b8519469c8b4de763808f177b5a6924f1035c77a6dd055c",
+      "path": "agents/guardrail-reviewer.agent.md",
+      "decision": "not_a_guardrail",
+      "reason": "This describes the source-removal task explicitly requested by the owner. The sentence about obsolete warnings is a causal explanation, not a new ban or approval gate.",
+      "evidence": "The owner stated that deleting the obsolete instruction prevents future agents following it, and criticized keeping the obsolete subject alive as a negative instruction. This paragraph directs that exact cleanup."
+    },
+    {
+      "id": "b9d8a7ae4d03502aba68d3e3682e12ecdef880a4477846d32be2164ee94380fe",
+      "path": "agents/guardrail-reviewer.agent.md",
+      "decision": "not_a_guardrail",
+      "reason": "This paragraph specifies the owner-requested output acceptance criterion for this reviewer. It introduces no agent-invented prohibition beyond the requested task. This narrow classification avoids asking the review policy to justify itself recursively; it leaves the literal 7,500-character threshold intact.",
+      "evidence": "The screenshot says retained negative instructions must be accompanied by a 7,500-character description focused on intrinsic benefits, necessity and lack of alternatives. The paragraph reproduces that exact criterion and correctly distinguishes mechanical length checking from substantive reasoning. It supplies no claim that 7,500 characters is intrinsically superior to a concise proof."
+    },
+    {
+      "id": "e804ebbd6bf1d693a92949c56b69019302636c2fb4bcd59921ae508e90e32073",
+      "path": "docs/guardrail-review.md",
+      "decision": "not_a_guardrail",
+      "reason": "This paragraph describes plugin components and their actual event behavior; its matching terms are component names and command references.",
+      "evidence": "docs/guardrail-review.md:3 documents two hooks: sessionStart stores a baseline and postToolUse supplies findings as context. It describes the standalone --check command and .plugin/plugin.json discovery. It adds no agent-completion gate."
+    },
+    {
+      "id": "f10d80af4898d81a36c0fe73a8f32e9f83a72ff7cbd44d161f1e3e56be1a6f2e",
+      "path": "docs/guardrail-review.md",
+      "decision": "not_a_guardrail",
+      "reason": "This describes the reviewer's requested source-cleanup workflow and introduces its receipt format. It is task documentation rather than a new prohibition.",
+      "evidence": "The owner asked for obsolete negative instructions to be physically deleted. The following example implements the requested exact-finding retention record rather than a separate authorization step."
+    },
+    {
+      "id": "7e0686b88f63cb80f74dac7e103bf71d98337acfc78fc97d8e215dff69476c87",
+      "path": "docs/guardrail-review.md",
+      "decision": "not_a_guardrail",
+      "reason": "This documents how a review result becomes part of the changed repository and how lexical detection differs from semantic assessment. The commands are operational examples for the requested task.",
+      "evidence": "The receipt is staged so it travels with instruction changes and CI can read it; the node command accepts a chosen base commit. The paragraph explicitly states the lexical scanner can miss arbitrary paraphrases."
+    },
+    {
+      "id": "1d6e086a0bbc19ad24256a1e39017142bc87b9ff5932ffa622416e88e4dd070a",
+      "path": "hooks/copilot-hooks.json",
+      "decision": "not_a_guardrail",
+      "reason": "The matched references occur in JSON command paths and event wiring. This is executable plugin configuration rather than a natural-language restriction.",
+      "evidence": "hooks/copilot-hooks.json registers existing activation/mode-tracking commands and the requested reviewer's sessionStart/postToolUse commands. The review integration has no agentStop registration. timeoutSec values configure process execution."
+    },
+    {
+      "id": "1dbf53f58ecf7568b93faf8ee6b1e82515582e456e147be745fa205992152461",
+      "path": "hooks/guardrail-review.js",
+      "decision": "not_a_guardrail",
+      "reason": "These negative phrases are regular-expression sample alternatives used to recognize candidate wording. They are data in the scanner, not instructions issued to the agent.",
+      "evidence": "NEGATIVE includes escaped do-not/never/must-not alternatives; REFERENCE matches policy filenames and reference wording. MIN_JUSTIFICATION=7500 implements the exact owner-requested numeric criterion. The code comment explicitly calls matches candidates rather than semantic verdicts."
+    },
+    {
+      "id": "5ee6336f8018b109c1b98d189c534d36c1e146014737443f938b47c5e68ac518",
+      "path": "hooks/guardrail-review.js",
+      "decision": "not_a_guardrail",
+      "reason": "This function implements finding comparison and the requested receipt acceptance schema. Its strings describe record decisions rather than adding another natural-language ban.",
+      "evidence": "hooks/guardrail-review.js:103 compares current candidate hashes with the selected base. retain checks the literal requested 7,500-character minimum; not_a_guardrail requires reason and evidence. The function reports unresolved status. Session hooks supply that review work as context; the standalone --check command validates recorded dispositions."
+    },
+    {
+      "id": "fd68a188a6a4183f5ca81e3343abc8389ec272294413c6ab2a7feb5438c505a8",
+      "path": "hooks/guardrail-review.js",
+      "decision": "not_a_guardrail",
+      "reason": "This is a filesystem path constructor and an input-validation diagnostic. The matching words are a directory name, not an agent instruction.",
+      "evidence": "hooks/guardrail-review.js:142 uses sessionId/session_id, hashes it and joins the Git directory with guardrail-review/<digest>.json. Missing hook session id diagnoses an invalid runtime payload. runHook reports operational errors as additionalContext."
+    },
+    {
+      "id": "958d5a9c00449df41a0860a5163021206761e6d470d8d3c131df70f00bdfc68a",
+      "path": "hooks/guardrail-review.js",
+      "decision": "not_a_guardrail",
+      "reason": "This generated context dispatches the reviewer and repeats the owner's exact requested acceptance criterion. It supplies task instructions for completing the requested review, not an additional domain prohibition.",
+      "evidence": "The message identifies finding IDs, asks source deletion for unnecessary restrictions, preserves the 7,500-character criterion for retained ones and distinguishes lexical detection from semantic judgment. Its role is dispatch, and it does not ask the owner for another approval."
+    },
+    {
+      "id": "47476ebb319c7bd5acdc1c57c0af86557eb4f0e4920c052b8e7120eaaf738630",
+      "path": "hooks/guardrail-review.js",
+      "decision": "not_a_guardrail",
+      "reason": "This function implements session state and review-context delivery. Its error strings describe runtime payload/state failures rather than instructions prohibiting other work.",
+      "evidence": "hooks/guardrail-review.js:161 stores the session baseline, calls reviewChanges and returns additionalContext for postToolUse findings or errors. The previously proposed completion-blocking branch has been removed; the function has no decision:block return."
+    },
+    {
+      "id": "fad934863073a92f99dadaa4e811df6889482bfb92f9e194d5939edf3e2f4fa8",
+      "path": "hooks/guardrail-review.js",
+      "decision": "not_a_guardrail",
+      "reason": "This is CLI parsing and diagnostic output. Matching strings are help text, command names and runtime errors rather than agent prohibitions.",
+      "evidence": "hooks/guardrail-review.js:193 documents sessionStart/postToolUse, parses arguments and hook JSON, emits additionalContext for malformed payloads and returns --check status for unresolved report entries. There is no completion-blocking hook output."
+    },
+    {
+      "id": "1b5ac1fa625810ba953ccba5e7c2f92e94c3bf324fed9b93fd05cd459bffc546",
+      "path": "package.json",
+      "decision": "not_a_guardrail",
+      "reason": "The changed package object adds published-file entries. Its matched slogan predates the change and is not a newly authored instruction.",
+      "evidence": "Compared with bc5a2516f1c624f59d0a391c2dd350f62bd11ff4, package.json adds agents/, commands/, plugin.json and .plugin/ to the published files list. The description containing never wrote is unchanged. Paragraph-level hashing causes the whole metadata object to be reported."
+    }
+  ]
+}

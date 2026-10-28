@@ -26,6 +26,23 @@ assert.equal(scanText('AGENTS.md', 'No new dependency is permitted.')[0].kind, '
 
 const payload = { cwd: temp, sessionId: '../../odd session/🌻' };
 assert.deepEqual(runHook('sessionStart', payload), {});
+const originalInstructions = fs.readFileSync(path.join(temp, 'AGENTS.md'), 'utf8');
+const paraphrase = originalInstructions + '\nWork proceeds following a second owner confirmation.\n';
+write('AGENTS.md', paraphrase);
+let semantic = reviewChanges(temp, base);
+assert.equal(semantic.findings.length, 0, 'positive paraphrase is outside the lexical detector');
+assert.equal(semantic.changed_instruction_files[0].path, 'AGENTS.md');
+assert.equal(semantic.status, 'pass', 'semantic-only changes add no CLI disposition gate');
+assert.match(runHook('postToolUse', payload).additionalContext, /positive paraphrases/);
+assert.deepEqual(runHook('postToolUse', payload), {}, 'repeated reads of unchanged findings stay quiet');
+write('AGENTS.md', paraphrase.replace('second owner', 'second authorized owner'));
+assert.match(runHook('postToolUse', payload).additionalContext, /changed instruction surfaces/);
+write('AGENTS.md', originalInstructions);
+assert.deepEqual(runHook('postToolUse', payload), {}, 'deleting the new instruction clears the notification state');
+write('AGENTS.md', paraphrase);
+assert.match(runHook('postToolUse', payload).additionalContext, /positive paraphrases/, 'reintroduction triggers review again');
+write('AGENTS.md', originalInstructions);
+assert.deepEqual(runHook('postToolUse', payload), {});
 write('AGENTS.md', 'Use the PDF parser.\n\nNever change a historical constraint.\n\nDo\nnot ask the owner to repeat a decision.\n');
 let report = reviewChanges(temp, base);
 assert.equal(report.unresolved_count, 1, 'unchanged old prohibition stays outside changed scope');
@@ -35,7 +52,8 @@ assert.match(runHook('postToolUse', { ...payload, toolName: 'bash' }).additional
 assert.equal(runHook('postToolUse', payload).permissionDecision, undefined, 'review context grants or denies no tool permission');
 commit();
 runHook('sessionStart', { ...payload, source: 'resume' });
-assert.match(runHook('postToolUse', payload).additionalContext, /new\/changed candidates/, 'committing and resuming preserves the original baseline');
+assert.equal(reviewChanges(temp, base).unresolved_count, 1, 'committed instruction remains in the original session scope');
+assert.deepEqual(runHook('postToolUse', payload), {}, 'committing and resuming does not repeat an unchanged notification');
 const stateDir = path.join(temp, '.git', 'guardrail-review');
 assert.equal(fs.readdirSync(stateDir).length, 1);
 assert.match(fs.readdirSync(stateDir)[0], /^[0-9a-f]{64}\.json$/);
@@ -49,7 +67,8 @@ assert.equal(reviewChanges(temp, base).unresolved_count, 0);
 receipt({ id: finding.id, decision: 'not_a_guardrail', reason: 'Test fixture' });
 assert.equal(reviewChanges(temp, base).unresolved_count, 1);
 receipt({ id: finding.id, decision: 'not_a_guardrail', reason: 'Quoted test input', evidence: 'Tests construct this text, rather than load it as agent instructions.' });
-assert.deepEqual(runHook('postToolUse', payload), {}, 'resolved review adds no further context');
+runHook('postToolUse', payload); // A changed disposition updates the notification fingerprint once.
+assert.deepEqual(runHook('postToolUse', payload), {}, 'resolved review is quiet after its changed fingerprint is observed');
 
 write('new instruction.md', 'Changes require owner approval.\n');
 assert.equal(reviewChanges(temp, base).unresolved_count, 1, 'untracked shell-created instruction is reviewed');
