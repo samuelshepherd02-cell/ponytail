@@ -12,5 +12,6 @@
   "keywords": ["yagni", "minimalism", "code-review", "productivity"],
   "commands": "commands/",
   "skills": "skills/",
-  "hooks": "hooks/copilot-hooks.json"
+  "hooks": "hooks/copilot-hooks.json",
+  "agents": "agents/"
 }
