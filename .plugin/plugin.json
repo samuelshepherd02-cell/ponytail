@@ -1,0 +1,7 @@
+{
+  "name": "ponytail",
+  "commands": "commands/",
+  "skills": "skills/",
+  "hooks": "hooks/copilot-hooks.json",
+  "agents": "agents/"
+}

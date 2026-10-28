@@ -7,6 +7,12 @@
         "bash": "node \"${PLUGIN_ROOT}/hooks/ponytail-activate.js\"",
         "powershell": "node \"${PLUGIN_ROOT}\\hooks\\ponytail-activate.js\"",
         "timeoutSec": 5
+      },
+      {
+        "type": "command",
+        "bash": "node \"${PLUGIN_ROOT}/hooks/guardrail-review.js\" --hook sessionStart",
+        "powershell": "node \"${PLUGIN_ROOT}\\hooks\\guardrail-review.js\" --hook sessionStart",
+        "timeoutSec": 10
       }
     ],
     "userPromptSubmitted": [
@@ -15,6 +21,14 @@
         "bash": "node \"${PLUGIN_ROOT}/hooks/ponytail-mode-tracker.js\"",
         "powershell": "node \"${PLUGIN_ROOT}\\hooks\\ponytail-mode-tracker.js\"",
         "timeoutSec": 5
+      }
+    ],
+    "postToolUse": [
+      {
+        "type": "command",
+        "bash": "node \"${PLUGIN_ROOT}/hooks/guardrail-review.js\" --hook postToolUse",
+        "powershell": "node \"${PLUGIN_ROOT}\\hooks\\guardrail-review.js\" --hook postToolUse",
+        "timeoutSec": 10
       }
     ]
   }
