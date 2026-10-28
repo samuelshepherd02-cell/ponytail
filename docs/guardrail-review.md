@@ -35,9 +35,11 @@ Stage the receipt alongside the instruction change. Use the complete report
 command provided by the hook for a chosen comparison. From the subject repository,
 the standalone command is
 `node /PATH/TO/PONYTAIL/hooks/guardrail-review.js --base COMMIT --check`.
-The scanner finds lexical candidates in changed repository text. Semantic review
-decides which candidates actually restrict an agent and whether they earn
-retention. Arbitrary natural-language constraints can escape a lexical scanner.
+The scanner finds lexical candidates in changed repository text. Changes to
+instruction entrypoints such as AGENTS, CLAUDE, SKILL, HANDOFF and agent profiles
+also request semantic review when their wording falls outside the patterns.
+Unchanged notifications are deduplicated. The reviewer evaluates actual scope
+and necessity; CLI checks validate the explicit candidates' recorded dispositions.
 
 These files configure supported Copilot hook payloads; local tests simulate the
 events. A live Copilot job is a separate runtime verification. GitHub documents

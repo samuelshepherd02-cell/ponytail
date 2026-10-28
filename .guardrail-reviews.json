@@ -51,11 +51,11 @@
       "evidence": "The owner asked for obsolete negative instructions to be physically deleted. The following example implements the requested exact-finding retention record rather than a separate authorization step."
     },
     {
-      "id": "7e0686b88f63cb80f74dac7e103bf71d98337acfc78fc97d8e215dff69476c87",
+      "id": "001658d87fbb2946342b4f66c3fe3aa07720d13cfc7438504962be24f2681149",
       "path": "docs/guardrail-review.md",
       "decision": "not_a_guardrail",
-      "reason": "This documents how a review result becomes part of the changed repository and how lexical detection differs from semantic assessment. The commands are operational examples for the requested task.",
-      "evidence": "The receipt is staged so it travels with instruction changes and CI can read it; the node command accepts a chosen base commit. The paragraph explicitly states the lexical scanner can miss arbitrary paraphrases."
+      "reason": "This documents how to run and record the owner-requested review and explains the distinction between lexical candidates and semantic review of changed instruction entrypoints.",
+      "evidence": "docs/guardrail-review.md:34 supplies a standalone report command, identifies AGENTS/CLAUDE/SKILL/HANDOFF and agent profiles as semantic-review surfaces, and states that unchanged notifications are deduplicated. CLI validation covers explicit candidates' recorded dispositions; the paragraph does not claim universal natural-language detection."
     },
     {
       "id": "1d6e086a0bbc19ad24256a1e39017142bc87b9ff5932ffa622416e88e4dd070a",
@@ -72,11 +72,11 @@
       "evidence": "NEGATIVE includes escaped do-not/never/must-not alternatives; REFERENCE matches policy filenames and reference wording. MIN_JUSTIFICATION=7500 implements the exact owner-requested numeric criterion. The code comment explicitly calls matches candidates rather than semantic verdicts."
     },
     {
-      "id": "5ee6336f8018b109c1b98d189c534d36c1e146014737443f938b47c5e68ac518",
+      "id": "b8c3221a7d406b790505e3ed7c2af73e7744d6e2bb2cc766037a24644b63f05e",
       "path": "hooks/guardrail-review.js",
       "decision": "not_a_guardrail",
-      "reason": "This function implements finding comparison and the requested receipt acceptance schema. Its strings describe record decisions rather than adding another natural-language ban.",
-      "evidence": "hooks/guardrail-review.js:103 compares current candidate hashes with the selected base. retain checks the literal requested 7,500-character minimum; not_a_guardrail requires reason and evidence. The function reports unresolved status. Session hooks supply that review work as context; the standalone --check command validates recorded dispositions."
+      "reason": "This function implements finding comparison, the requested receipt schema and collection of changed instruction surfaces. The matching terms are data fields and task-output validation code rather than new natural-language prohibitions.",
+      "evidence": "hooks/guardrail-review.js:111 compares source text to a fixed base, records path/hash for changed instructionSurface files, and resolves explicit candidates using retained-justification length or an evidence-backed classification. Its semantic_scope field explicitly distinguishes semantic-review requests from CLI validation of lexical dispositions. It reports state without blocking agent completion."
     },
     {
       "id": "fd68a188a6a4183f5ca81e3343abc8389ec272294413c6ab2a7feb5438c505a8",
@@ -86,18 +86,18 @@
       "evidence": "hooks/guardrail-review.js:142 uses sessionId/session_id, hashes it and joins the Git directory with guardrail-review/<digest>.json. Missing hook session id diagnoses an invalid runtime payload. runHook reports operational errors as additionalContext."
     },
     {
-      "id": "958d5a9c00449df41a0860a5163021206761e6d470d8d3c131df70f00bdfc68a",
+      "id": "16a7c6f2e590d1aeb881daf7a10ba6e37a5bc080e7ef030aab1b1318eebb225f",
       "path": "hooks/guardrail-review.js",
       "decision": "not_a_guardrail",
-      "reason": "This generated context dispatches the reviewer and repeats the owner's exact requested acceptance criterion. It supplies task instructions for completing the requested review, not an additional domain prohibition.",
-      "evidence": "The message identifies finding IDs, asks source deletion for unnecessary restrictions, preserves the 7,500-character criterion for retained ones and distinguishes lexical detection from semantic judgment. Its role is dispatch, and it does not ask the owner for another approval."
+      "reason": "This generated context dispatches the requested reviewer over lexical candidates and changed instruction surfaces. It repeats the owner's exact retention-output criterion rather than inventing another domain restriction.",
+      "evidence": "hooks/guardrail-review.js:161 reports candidate IDs and changed-file hashes, requests contextual assessment including positive paraphrases, and preserves the literal 7,500-character criterion for retained restrictions. The message expressly distinguishes lexical detection from semantic judgment and provides the complete report command."
     },
     {
-      "id": "47476ebb319c7bd5acdc1c57c0af86557eb4f0e4920c052b8e7120eaaf738630",
+      "id": "094521ac47ea117409730a0b9e45d8ff40677117553bc7d499bf817544bf800e",
       "path": "hooks/guardrail-review.js",
       "decision": "not_a_guardrail",
-      "reason": "This function implements session state and review-context delivery. Its error strings describe runtime payload/state failures rather than instructions prohibiting other work.",
-      "evidence": "hooks/guardrail-review.js:161 stores the session baseline, calls reviewChanges and returns additionalContext for postToolUse findings or errors. The previously proposed completion-blocking branch has been removed; the function has no decision:block return."
+      "reason": "This is session-state and notification delivery code for the requested automatic review event. Deduplication controls repeated identical messages rather than restricting the underlying task.",
+      "evidence": "hooks/guardrail-review.js:180 preserves the session baseline, hashes unresolved candidates plus changed instruction-file hashes, and supplies additionalContext when that notification state changes. A second identical state returns an empty context. Operational errors also return additionalContext; the function contains no completion-blocking decision."
     },
     {
       "id": "fad934863073a92f99dadaa4e811df6889482bfb92f9e194d5939edf3e2f4fa8",
